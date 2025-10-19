@@ -208,7 +208,7 @@
     <label class="upload-area" id="uploadArea">
         <input type="file" id="inputImagem" accept="image/*" multiple hidden>
         <button class="btn">➕ Iniciar com foto</button>
-        <p class="sub-text">ou solte uma imagem aqui (Máximo 1MB por arquivo na Vercel)</p>
+        <p class="sub-text">ou solte uma imagem aqui (Máximo 1MB por arquivo)</p>
     </label>
 
     <div class="preview" id="preview" style="display:none;"></div>
@@ -236,6 +236,9 @@
 </footer>
 
 <script>
+// A URL da sua API no Render. Este é o único ponto que precisava ser corrigido.
+const API_URL = "https://paranapecas-2.onrender.com/remover-fundo";
+
 const dropArea = document.getElementById("uploadArea");
 const input = document.getElementById("inputImagem");
 const preview = document.getElementById("preview");
@@ -302,7 +305,7 @@ dropArea.addEventListener("drop", e => {
     input.dispatchEvent(new Event("change"));
 });
 
-// Processar imagens (REFATORADO: UMA CHAMADA DE API)
+// Processar imagens (AGORA USANDO A API_URL DO RENDER)
 processarBtn.addEventListener("click", async () => {
     clearMessages();
     if (!input.files.length) {
@@ -330,15 +333,14 @@ processarBtn.addEventListener("click", async () => {
     try {
         loaderText.textContent = "0%";
         
-        // 2. Faz UMA ÚNICA chamada para a API
-        // ENDPOINT CORRIGIDO para Vercel (usa caminho relativo)
-        const response = await fetch("/api/remover-fundo", {
+        // 2. Faz UMA ÚNICA chamada para a API no RENDER
+        const response = await fetch(API_URL, { // <--- CORRIGIDO AQUI
             method: "POST",
             body: formData
         });
 
         if (!response.ok) {
-             throw new Error(`Erro de rede ou servidor: HTTP ${response.status}.`);
+             throw new Error(`Erro de rede ou servidor: HTTP ${response.status}. Por favor, verifique o log de deploy do Render.`);
         }
         
         const data = await response.json(); // Array de resultados base64 ou erros
@@ -387,7 +389,7 @@ processarBtn.addEventListener("click", async () => {
         
     } catch (err) {
         console.error("Erro geral no processamento:", err);
-        statusMessage.textContent = `Falha ao processar imagens: ${err.message}. Verifique os logs da Vercel.`;
+        statusMessage.textContent = `Falha ao processar imagens: ${err.message}.`;
     } finally {
         loaderContainer.style.display = "none";
         processarBtn.disabled = false;
